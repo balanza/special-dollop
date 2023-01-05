@@ -11,10 +11,9 @@
     "supertest": "^6.3.3"
   },
   "scripts": {
-    "pretest": "STORAGE_PATH=./database.test.sqlite3 npm run seed",
-    "test": "STORAGE_PATH=./database.test.sqlite3 jest",
+    "test": "jest",
     "start": "nodemon ./src/server.js",
-    "seed": "node ./scripts/seedDb.js"
+    "seed": "node -e 'require(`./scripts/seedDb`)()'"
   },
   "devDependencies": {
     "concurrently": "4.1.0",

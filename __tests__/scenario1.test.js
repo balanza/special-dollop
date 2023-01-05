@@ -1,7 +1,16 @@
+// Use an isolated database for each test scenario
+// It works because Jest uses a separated worker for each file
+// so we can override process variables individually
+process.env.STORAGE_PATH=`database.test.${__filename.split("/").reverse()[0].split(".")[0]}.sqlite3`
+
 const request = require("supertest");
 const app = require("../src/app");
 const seedData = require("../scripts/data");
 const { ensureEndpointAuth } = require("./commons");
+
+beforeAll(async () => {
+  await require("../scripts/seedDb")()}
+)
 
 describe("GET /contracts/:id", () => {
 

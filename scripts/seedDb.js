@@ -2,8 +2,6 @@ const { Profile, Contract, Job } = require('../src/model');
 const { profiles, contracts, jobs } = require('./data');
 
 /* WARNING THIS WILL DROP THE CURRENT DATABASE */
-seed();
-
 async function seed() {
   // create tables
   await Profile.sync({ force: true });
@@ -16,3 +14,6 @@ async function seed() {
     ...jobs.map(e => Job.create(e)),
   ])
 }
+
+// exposing the seeding function to be invoked
+module.exports = seed;
