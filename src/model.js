@@ -1,8 +1,9 @@
 const Sequelize = require('sequelize');
+const { storage: { path: storage } } = require('./config');
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: './database.sqlite3'
+  storage
 });
 
 class Profile extends Sequelize.Model {}
