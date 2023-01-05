@@ -1,18 +1,12 @@
 const request = require("supertest");
 const app = require("../src/app");
 const seedData = require("../scripts/data");
+const { ensureEndpointAuth } = require("./commons");
 
 describe("GET /contracts/:id", () => {
-  it("should give 401 when profile do not exists", async () => {
-    const fakeProfileId = 999;
-    const anyContractId = seedData.contracts[0].id; // any existing contract
-    const res = await request(app)
-      .get(`/contracts/${anyContractId}`)
-      .set({ profile_id: fakeProfileId });
 
-    expect(res.status).toEqual(401);
-  });
-
+  ensureEndpointAuth(`/contracts/999` /* any contract id */);
+  
   it("should give 404 when contract do not exists", async () => {
     const anyProfileId = seedData.profiles[0].id; // any existing profile
     const fakeContractId = 999;
@@ -21,13 +15,6 @@ describe("GET /contracts/:id", () => {
       .set({ profile_id: anyProfileId });
 
     expect(res.status).toEqual(404);
-  });
-
-  it("should give 401 when no profile is provided", async () => {
-    const anyContractId = 1;
-    const res = await request(app).get(`/contracts/${anyContractId}`);
-
-    expect(res.status).toEqual(401);
   });
 
   describe.each(seedData.contracts)(

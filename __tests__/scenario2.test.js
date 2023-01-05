@@ -1,24 +1,11 @@
 const request = require("supertest");
 const app = require("../src/app");
 const seedData = require("../scripts/data");
-
-jest.setTimeout(1e6);
+const { ensureEndpointAuth } = require("./commons");
 
 describe("GET /contracts", () => {
-  it("should give 401 when profile do not exists", async () => {
-    const fakeProfileId = 999;
-    const res = await request(app)
-      .get(`/contracts`)
-      .set({ profile_id: fakeProfileId });
 
-    expect(res.status).toEqual(401);
-  });
-
-  it("should give 401 when no profile is provided", async () => {
-    const res = await request(app).get(`/contracts`);
-
-    expect(res.status).toEqual(401);
-  });
+  ensureEndpointAuth(`/contracts`);
 
   describe.each(seedData.profiles)(
     "When fetching all Contracts owned by Profile#$id",
