@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const { Op } = require("sequelize");
 const { sequelize } = require("./model");
 const { getProfile } = require("./middleware/getProfile");
+const { getJob } = require("./middleware/getJob");
 const app = express();
 app.use(bodyParser.json());
 app.set("sequelize", sequelize);
@@ -76,6 +77,75 @@ app.get("/jobs/unpaid", getProfile, async (req, res) => {
     console.error(error);
     res.status(500).send();
   }
+});
+
+// pays out a job
+app.post("/jobs/:job_id/pay", getProfile, getJob, async (req, res) => {
+  const { Job, Contract, Profile } = req.app.get("models");
+  const transaction = await sequelize.transaction();
+  try {
+    // Check the job is unpaid and get its price and ContractorId
+    const {
+      price,
+      Contract: { ContractorId },
+    } = await Job.findOne(
+      { include: Contract, where: { paid: null, id: req.job.id } },
+      { transaction }
+    );
+
+    // Check the client has enough money
+    const { balance } = await Profile.findOne(
+      { where: { id: req.profile.id } },
+      { transaction }
+    );
+
+    if (price > balance) {
+      throw new Error("not enough money");
+    }
+
+    const [[updatedJobs], [updatedClient], [updatedContractor]] =
+      await Promise.all([
+        // Send money to Contractor
+        Profile.update(
+          { balance: balance + price },
+          { where: { id: ContractorId } },
+          { transaction }
+        ),
+
+        // Withdraw from client
+        Profile.update(
+          { balance: balance - price },
+          { where: { id: req.profile.id, balance: { [Op.gte]: price } } },
+          { transaction }
+        ),
+
+        // Set job as done
+        Job.update(
+          { paid: true, paymentDate: new Date().toUTCString() },
+          { where: { id: req.job.id, paid: null } },
+          { transaction }
+        ),
+      ]);
+
+    if (!updatedJobs) {
+      throw new Error("Failed to update job, maybe a concurrency issue?");
+    }
+    if (!updatedClient) {
+      throw new Error("Failed to update client, maybe not enough money?");
+    }
+    if (!updatedContractor) {
+      throw new Error("Failed to update contractor");
+    }
+
+    await transaction.commit();
+    res.status(200);
+  } catch (error) {
+    console.error(error);
+    await transaction.rollback();
+
+    res.status(500);
+  }
+  res.end();
 });
 
 module.exports = app;

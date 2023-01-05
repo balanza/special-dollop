@@ -132,31 +132,37 @@ module.exports = {
   ],
   jobs: [
     {
+      id: 1,
       description: "work",
       price: 200,
       ContractId: 1,
     },
     {
+      id: 2,
       description: "work",
       price: 201,
       ContractId: 2,
     },
     {
+      id: 3,
       description: "work",
       price: 202,
       ContractId: 3,
     },
     {
+      id: 4,
       description: "work",
       price: 200,
       ContractId: 4,
     },
     {
+      id: 5,
       description: "work",
       price: 200,
       ContractId: 7,
     },
     {
+      id: 6,
       description: "work",
       price: 2020,
       paid: true,
@@ -164,6 +170,7 @@ module.exports = {
       ContractId: 7,
     },
     {
+      id: 7,
       description: "work",
       price: 200,
       paid: true,
@@ -171,6 +178,7 @@ module.exports = {
       ContractId: 2,
     },
     {
+      id: 8,
       description: "work",
       price: 200,
       paid: true,
@@ -178,6 +186,7 @@ module.exports = {
       ContractId: 3,
     },
     {
+      id: 9,
       description: "work",
       price: 200,
       paid: true,
@@ -185,6 +194,7 @@ module.exports = {
       ContractId: 1,
     },
     {
+      id: 10,
       description: "work",
       price: 200,
       paid: true,
@@ -192,6 +202,7 @@ module.exports = {
       ContractId: 5,
     },
     {
+      id: 11,
       description: "work",
       price: 21,
       paid: true,
@@ -199,6 +210,7 @@ module.exports = {
       ContractId: 1,
     },
     {
+      id: 12,
       description: "work",
       price: 21,
       paid: true,
@@ -206,6 +218,7 @@ module.exports = {
       ContractId: 2,
     },
     {
+      id: 13,
       description: "work",
       price: 121,
       paid: true,
@@ -213,6 +226,7 @@ module.exports = {
       ContractId: 3,
     },
     {
+      id: 14,
       description: "work",
       price: 121,
       paid: true,
