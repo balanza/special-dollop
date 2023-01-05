@@ -48,6 +48,7 @@ Contract.init(
   {
     sequelize,
     modelName: "Contract",
+    indexes: [{fields: ["status"], unique: false}]
   }
 );
 

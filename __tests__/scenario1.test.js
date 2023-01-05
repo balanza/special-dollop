@@ -32,7 +32,11 @@ describe("GET /contracts/:id", () => {
 
   describe.each(seedData.contracts)(
     "When fetching Contract#$id",
-    ({ id: ContractId, ClientId: OwnerClientId }) => {
+    ({
+      id: ContractId,
+      ClientId: OwnerClientId,
+      ContractorId: OwnerContractorId,
+    }) => {
       it(`should return the contract for the owner Client#${OwnerClientId}`, async () => {
         const res = await request(app)
           .get(`/contracts/${ContractId}`)
@@ -41,14 +45,23 @@ describe("GET /contracts/:id", () => {
         expect(res.status).toEqual(200);
       });
 
-      const nonOwnerClients = seedData.profiles
-        .filter((e) => e.id !== OwnerClientId);
-      it.each(nonOwnerClients)(
-        `should not return the contract for non-owner clients like #$id`,
-        async ({ id: nonOwnerClientId }) => {
+      it(`should return the contract for the owner Contractor#${OwnerContractorId}`, async () => {
+        const res = await request(app)
+          .get(`/contracts/${ContractId}`)
+          .set({ profile_id: OwnerContractorId });
+
+        expect(res.status).toEqual(200);
+      });
+
+      const nonOwners = seedData.profiles.filter(
+        (e) => e.id !== OwnerClientId && e.id !== OwnerContractorId
+      );
+      it.each(nonOwners)(
+        `should not return the contract for non-owner profiles like #$id`,
+        async ({ id }) => {
           const res = await request(app)
             .get(`/contracts/${ContractId}`)
-            .set({ profile_id: nonOwnerClientId });
+            .set({ profile_id: id });
 
           expect(res.status).toEqual(404);
         }
