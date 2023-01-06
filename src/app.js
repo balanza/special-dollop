@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const { Op } = require("sequelize");
+const { Op, literal, Transaction, fn, col } = require("sequelize");
 const { sequelize } = require("./model");
 const { getProfile } = require("./middleware/getProfile");
 const { getJob } = require("./middleware/getJob");
@@ -146,6 +146,73 @@ app.post("/jobs/:job_id/pay", getProfile, getJob, async (req, res) => {
     res.status(500);
   }
   res.end();
+});
+
+// recharges a client's balance
+app.post("/balances/deposit/:userId", getProfile, async (req, res) => {
+  const { Job, Contract, Profile } = req.app.get("models");
+
+  const transaction = await sequelize.transaction({
+    isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+  });
+  try {
+    // Can a client receive money from anyone, or can they just recharge themselves?
+    // I assume the first, as otherwise there would be no reason to have {userId} parameter
+    // as it might just be the same of {profile_id}
+    const { userId } = req.params;
+
+    const amount = Number(req.body?.amount);
+    if (Number.isNaN(amount)) {
+      return res.status(400).send();
+    }
+
+    // check the user exists and is actually a client
+    const client = await Profile.findOne(
+      {
+        where: { id: userId, type: "client" },
+      },
+      { transaction }
+    );
+    if (!client) {
+      return res.status(404).send();
+    }
+
+    // check the deposit amount isn't more than 25% of the amount to pay
+    const {
+      dataValues: { totalPrice },
+    } = await Job.findOne(
+      {
+        include: Contract,
+        attributes: [[fn("sum", col("price")), "totalPrice"]],
+        group: "Contract.ClientId",
+        where: { "$Contract.ClientId$": client.id, paid: null },
+        nest: false,
+      },
+      { transaction }
+    );
+    if (amount > totalPrice * 0.25) {
+      // Return "NOT FOUND" to avoid possible introspections
+      return res.status(400).send();
+    }
+
+    // update user's balance
+    const [n] = await Profile.update(
+      { balance: literal(`balance+${amount}`) },
+      { where: { id: client.id } },
+      { transaction }
+    );
+    if (!n) {
+      throw new Error("Failed to update profile");
+    }
+
+    await transaction.commit();
+
+    return res.status(200).send();
+  } catch (error) {
+    console.error(error);
+    await transaction.rollback();
+    return res.status(500).send();
+  }
 });
 
 module.exports = app;
